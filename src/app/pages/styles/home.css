@@ -1,0 +1,50 @@
+
+.home-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .home-content {
+    max-width: 48rem;
+  }
+  
+  .home-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2563eb; 
+  }
+  
+  @media (min-width: 640px) {
+    .home-title {
+      font-size: 3rem;
+    }
+  }
+  
+  .home-text {
+    margin-top: 1rem;
+    font-size: 1.125rem;
+    color: #374151; 
+  }
+  
+  .home-updates {
+    margin-top: 3rem;
+    width: 100%;
+    max-width: 64rem;
+  }
+  
+  .home-updates-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937; 
+  }
+  
+  .home-updates-text {
+    margin-top: 0.5rem;
+    color: #6b7280; 
+  }
+  
