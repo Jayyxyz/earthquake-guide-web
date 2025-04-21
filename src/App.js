@@ -2,14 +2,23 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  
+  // Authentication state
+  const [user, setUser] = useState(null);
+  const [authMode, setAuthMode] = useState(null); // 'signin' or 'signup'
+  const [authForm, setAuthForm] = useState({
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  // Earthquake data and location state
   const [earthquakes, setEarthquakes] = useState([
     { id: 1, location: "Davao", magnitude: 7.6, depth: "35km", time: "2 hours ago", alert: "red" },
     { id: 2, location: "Manila", magnitude: 5.2, depth: "15km", time: "5 hours ago", alert: "yellow" },
     { id: 3, location: "Cebu", magnitude: 4.1, depth: "25km", time: "1 day ago", alert: "green" }
   ]);
 
-  const [activeTab, setActiveTab] = useState('alerts');
+  const [activeTab, setActiveTab] = useState('preparedness');
   const [userLocation, setUserLocation] = useState(null);
 
   // Simulate fetching user location
@@ -23,29 +32,131 @@ function App() {
     // In a real app, this would send SMS/emails to emergency contacts
   };
 
+  // Authentication handlers
+  const handleAuthInputChange = (e) => {
+    const { name, value } = e.target;
+    setAuthForm({
+      ...authForm,
+      [name]: value
+    });
+  };
+
+  const handleSignUp = (e) => {
+    e.preventDefault();
+    if (authForm.password !== authForm.confirmPassword) {
+      alert("Passwords don't match!");
+      return;
+    }
+    // In a real app, you would call your backend here
+    setUser({
+      email: authForm.email,
+      name: "User Name" // This would come from your auth system
+    });
+    setAuthMode(null);
+    setActiveTab('alerts'); // Switch to alerts after login
+  };
+
+  const handleSignIn = (e) => {
+    e.preventDefault();
+    // In a real app, you would verify credentials with backend
+    setUser({
+      email: authForm.email,
+      name: "User Name"
+    });
+    setAuthMode(null);
+    setActiveTab('alerts'); // Switch to alerts after login
+  };
+
+  const handleSignOut = () => {
+    setUser(null);
+    setActiveTab('preparedness');
+  };
+
+  // Protected content based on auth status
+  const renderContent = () => {
+    return (
+      <>
+        {activeTab === 'alerts' && user && <AlertsTab earthquakes={earthquakes} userLocation={userLocation} />}
+        {activeTab === 'map' && user && <MapTab />}
+        {activeTab === 'sos' && user && <SosTab handleSOS={handleSOS} />}
+        {activeTab === 'preparedness' && <PreparednessTab />}
+        {activeTab === 'resources' && <ResourcesTab />}
+      </>
+    );
+  };
+
   return (
     <div className="e-quake-app">
-      {/* Navigation */}
-      <nav className="navbar">
-        <div className="container">
-          <a href="/" className="logo">E-QUAKE</a>
-          <div className="nav-links">
-            <button className={activeTab === 'alerts' ? 'active' : ''} onClick={() => setActiveTab('alerts')}>Alerts</button>
-            <button className={activeTab === 'map' ? 'active' : ''} onClick={() => setActiveTab('map')}>Map</button>
-            <button className={activeTab === 'preparedness' ? 'active' : ''} onClick={() => setActiveTab('preparedness')}>Preparedness</button>
-            <button className={activeTab === 'resources' ? 'active' : ''} onClick={() => setActiveTab('resources')}>Resources</button>
-            <button className="sos-btn" onClick={handleSOS}>SOS</button>
-          </div>
-          <button className="mobile-menu-btn">☰</button>
+      {/* Header with Auth Status */}
+      <header className="app-header">
+        <div className="header-left">
+          <h1 className="app-title">E-QUAKE</h1>
+          {user && (
+            <div className="user-info">
+              <span className="user-name">{user.name}</span>
+              <span className="user-email">{user.email}</span>
+            </div>
+          )}
         </div>
+        <div className="header-right">
+          {user ? (
+            <button className="auth-btn signout" onClick={handleSignOut}>
+              Sign Out
+            </button>
+          ) : (
+            <>
+              <button className="auth-btn signin" onClick={() => setAuthMode('signin')}>
+                Sign In
+              </button>
+              <button className="auth-btn signup" onClick={() => setAuthMode('signup')}>
+                Sign Up
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <nav className="app-nav">
+        {user && (
+          <>
+            <button 
+              className={`nav-btn ${activeTab === 'alerts' ? 'active' : ''}`}
+              onClick={() => setActiveTab('alerts')}
+            >
+              Alerts
+            </button>
+            <button 
+              className={`nav-btn ${activeTab === 'map' ? 'active' : ''}`}
+              onClick={() => setActiveTab('map')}
+            >
+              Map
+            </button>
+            <button 
+              className={`nav-btn ${activeTab === 'sos' ? 'active' : ''}`}
+              onClick={() => setActiveTab('sos')}
+            >
+              SOS
+            </button>
+          </>
+        )}
+        <button 
+          className={`nav-btn ${activeTab === 'preparedness' ? 'active' : ''}`}
+          onClick={() => setActiveTab('preparedness')}
+        >
+          Preparedness
+        </button>
+        <button 
+          className={`nav-btn ${activeTab === 'resources' ? 'active' : ''}`}
+          onClick={() => setActiveTab('resources')}
+        >
+          Resources
+        </button>
       </nav>
 
       {/* Main Content */}
-      <main className="container">
-        {activeTab === 'alerts' && <AlertsTab earthquakes={earthquakes} userLocation={userLocation} />}
-        {activeTab === 'map' && <MapTab />}
-        {activeTab === 'preparedness' && <PreparednessTab />}
-        {activeTab === 'resources' && <ResourcesTab />}
+      <main className="app-content">
+        {renderContent()}
       </main>
 
       {/* Footer */}
@@ -77,11 +188,64 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* Authentication Modal */}
+      {authMode && (
+        <div className="auth-modal">
+          <div className="auth-container">
+            <button className="close-auth" onClick={() => setAuthMode(null)}>×</button>
+            <h2>{authMode === 'signin' ? 'Sign In' : 'Create Account'}</h2>
+            
+            <form onSubmit={authMode === 'signin' ? handleSignIn : handleSignUp}>
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={authForm.email}
+                  onChange={handleAuthInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={authForm.password}
+                  onChange={handleAuthInputChange}
+                  required
+                  minLength="6"
+                />
+              </div>
+              
+              {authMode === 'signup' && (
+                <div className="form-group">
+                  <label>Confirm Password</label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={authForm.confirmPassword}
+                    onChange={handleAuthInputChange}
+                    required
+                    minLength="6"
+                  />
+                </div>
+              )}
+              
+              <button type="submit" className="auth-submit">
+                {authMode === 'signin' ? 'Sign In' : 'Sign Up'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Tab Components
+// Tab Components (simplified for example)
 function AlertsTab({ earthquakes, userLocation }) {
   return (
     <section className="alerts-tab">
@@ -116,40 +280,6 @@ function AlertsTab({ earthquakes, userLocation }) {
           </div>
         ))}
       </div>
-      
-      <div className="alert-settings">
-        <h3>Alert Settings</h3>
-        <div className="settings-grid">
-          <div className="setting-card">
-            <h4>Notification Preferences</h4>
-            <div className="toggle-group">
-              <label>
-                <input type="checkbox" checked /> Push Notifications
-              </label>
-              <label>
-                <input type="checkbox" checked /> Email Alerts
-              </label>
-              <label>
-                <input type="checkbox" /> SMS Alerts
-              </label>
-            </div>
-          </div>
-          <div className="setting-card">
-            <h4>Alert Sensitivity</h4>
-            <select>
-              <option>All earthquakes</option>
-              <option>Magnitude 4.0+</option>
-              <option selected>Magnitude 5.0+</option>
-              <option>Magnitude 6.0+</option>
-            </select>
-          </div>
-          <div className="setting-card">
-            <h4>Location Settings</h4>
-            <p>Current location: {userLocation ? "Detected" : "Not available"}</p>
-            <button className="update-btn">Update Location</button>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }
@@ -159,7 +289,6 @@ function MapTab() {
     <section className="map-tab">
       <h2>Earthquake Map</h2>
       <div className="map-container">
-        {/* In a real app, this would be an interactive map component */}
         <div className="map-placeholder">
           <p>[Interactive Map Displaying Recent Earthquakes]</p>
           <div className="map-legend">
@@ -169,10 +298,30 @@ function MapTab() {
           </div>
         </div>
       </div>
-      <div className="map-controls">
-        <button className="map-btn">Refresh Data</button>
-        <button className="map-btn">Find Shelters</button>
-        <button className="map-btn">Evacuation Routes</button>
+    </section>
+  );
+}
+
+function SosTab({ handleSOS }) {
+  return (
+    <section className="sos-tab">
+      <h2>Emergency SOS</h2>
+      <div className="sos-content">
+        <div className="sos-card">
+          <h3>Immediate Assistance</h3>
+          <p>In case of emergency, click the button below to notify your emergency contacts with your current location.</p>
+          <button className="sos-btn" onClick={handleSOS}>
+            Send Emergency Alert
+          </button>
+        </div>
+        <div className="emergency-contacts">
+          <h3>Emergency Contacts</h3>
+          <ul>
+            <li>National Emergency Hotline: 911</li>
+            <li>Philippine Red Cross: 143</li>
+            <li>NDRRMC: (02) 8911-5061 to 65</li>
+          </ul>
+        </div>
       </div>
     </section>
   );
