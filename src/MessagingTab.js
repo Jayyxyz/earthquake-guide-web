@@ -1,13 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from "react";
 
-function MessagingTab({ 
-  user, 
-  contacts, 
-  messages, 
-  activeChat, 
-  setActiveChat, 
-  newMessage, 
-  setNewMessage, 
+function MessagingTab({
+  user,
+  contacts,
+  messages,
+  activeChat,
+  setActiveChat,
+  newMessage,
+  setNewMessage,
   handleSendMessage,
   handleAddContact,
   contactEmail,
@@ -15,7 +15,7 @@ function MessagingTab({
   emergencyContacts,
   handleAddEmergencyContact,
   handleRemoveEmergencyContact,
-  users // All registered users
+  users, // All registered users
 }) {
   const messagesEndRef = useRef(null);
 
@@ -30,12 +30,12 @@ function MessagingTab({
   return (
     <section className="messaging-tab">
       <h2>Emergency Messaging</h2>
-      
+
       <div className="messaging-container">
         {/* Contacts List */}
         <div className="contacts-list">
           <h3>Your Contacts</h3>
-          
+
           {/* Add Contact Form */}
           <div className="add-contact-form">
             <input
@@ -46,7 +46,7 @@ function MessagingTab({
               list="registeredUsers"
             />
             <datalist id="registeredUsers">
-              {users.map(user => (
+              {users.map((user) => (
                 <option key={user.id} value={user.email}>
                   {user.name}
                 </option>
@@ -54,19 +54,19 @@ function MessagingTab({
             </datalist>
             <button onClick={() => handleAddContact(contactEmail)}>Add</button>
           </div>
-          
+
           <ul>
-            {contacts.map(contact => (
-              <li 
+            {contacts.map((contact) => (
+              <li
                 key={contact.email}
-                className={activeChat === contact.email ? 'active' : ''}
+                className={activeChat === contact.email ? "active" : ""}
                 onClick={() => setActiveChat(contact.email)}
               >
                 <span className="contact-name">{contact.name}</span>
                 <span className="contact-email">{contact.email}</span>
                 <div className="emergency-toggle">
                   {emergencyContacts.includes(contact.email) ? (
-                    <button 
+                    <button
                       className="remove-emergency"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -76,7 +76,7 @@ function MessagingTab({
                       ★ Remove Emergency
                     </button>
                   ) : (
-                    <button 
+                    <button
                       className="add-emergency"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -91,26 +91,31 @@ function MessagingTab({
             ))}
           </ul>
         </div>
-        
+
         {/* Chat Area */}
         <div className="chat-area">
           {activeChat ? (
             <>
               <div className="chat-header">
-                <h3>{contacts.find(c => c.email === activeChat)?.name || activeChat}</h3>
+                <h3>
+                  {contacts.find((c) => c.email === activeChat)?.name ||
+                    activeChat}
+                </h3>
                 {emergencyContacts.includes(activeChat) && (
                   <span className="emergency-badge">Emergency Contact</span>
                 )}
               </div>
-              
+
               <div className="messages-container">
                 {(messages[activeChat] || []).map((msg, index) => (
-                  <div 
-                    key={index} 
-                    className={`message ${msg.sender === user.uid ? 'sent' : 'received'}`}
+                  <div
+                    key={index}
+                    className={`message ${
+                      msg.sender === user.uid ? "sent" : "received"
+                    }`}
                   >
                     <div className="message-content">
-                      {msg.sender === 'system' ? (
+                      {msg.sender === "system" ? (
                         <div className="system-message">
                           <strong>SYSTEM ALERT:</strong> {msg.text}
                         </div>
@@ -119,20 +124,22 @@ function MessagingTab({
                       )}
                     </div>
                     <div className="message-time">
-                      {msg.timestamp?.toDate()?.toLocaleTimeString() || 'Just now'}
+                      {/* Add fallback for server delay */}
+                      {msg.timestamp?.toDate()?.toLocaleTimeString() ||
+                        "Sending..."}
                     </div>
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
               </div>
-              
+
               <div className="message-input">
                 <input
                   type="text"
                   placeholder="Type your message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 />
                 <button onClick={handleSendMessage}>Send</button>
               </div>

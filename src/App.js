@@ -89,7 +89,8 @@ function App() {
   // Load user's contacts
   const loadContacts = async (userId) => {
     const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
+    const userSnap = await
+ getDoc(userRef);
     
     if (userSnap.exists()) {
       setContacts(userSnap.data().contacts || []);
@@ -256,53 +257,56 @@ function App() {
   // Messaging functions
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeChat) return;
-
+  
     try {
       const contact = contacts.find(c => c.email === activeChat);
-      if (!contact) return;
-
-      const chatId = [user.uid, contact.email].sort().join('_');
-      
+      if (!contact || !contact.uid) return;
+  
+      const chatId = [user.uid, contact.uid].sort().join('_');
+  
       await addDoc(collection(db, "chats", chatId, "messages"), {
         text: newMessage,
         sender: user.uid,
         timestamp: serverTimestamp()
       });
-
+  
       setNewMessage('');
     } catch (error) {
       alert('Error sending message: ' + error.message);
     }
   };
+  
 
   // Real-time messages listener
   useEffect(() => {
-    if (!user || !activeChat) return;
+    if (!user || !activeChat || contacts.length === 0) return;
   
     const contact = contacts.find(c => c.email === activeChat);
-    if (!contact) return;
+    if (!contact || !contact.uid) return;
   
-    const chatId = [user.uid, contact.email].sort().join('_');
+    const chatId = [user.uid, contact.uid].sort().join('_');
     const messagesRef = collection(db, "chats", chatId, "messages");
     const q = query(messagesRef, orderBy("timestamp"));
   
+    console.log(`👀 Listening to chat messages in: ${chatId}`);
+  
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const messagesList = [];
-      querySnapshot.forEach((doc) => {
-        messagesList.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
+      const messagesList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+  
       setMessages(prev => ({
         ...prev,
         [activeChat]: messagesList
       }));
+    }, (error) => {
+      console.error("❌ Snapshot error:", error.message);
     });
   
     return () => unsubscribe();
   }, [activeChat, user, contacts]);
+  
 
   // SOS function
   const handleSOS = async () => {
@@ -320,7 +324,7 @@ function App() {
         const contact = contacts.find(c => c.email === contactEmail);
         if (!contact) return;
 
-        const chatId = [user.uid, contact.email].sort().join('_');
+        const chatId = [user.uid, contact.uid].sort().join('_');
         await addDoc(collection(db, "chats", chatId, "messages"), {
           text: message,
           sender: 'system',
