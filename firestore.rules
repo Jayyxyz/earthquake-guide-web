@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to manage their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && 
+                         request.auth.uid == userId;
+      allow get: if request.auth != null; // Others can view basic info
+    }
+
+    // Emergency alerts collection
+    match /emergency_alerts/{alertId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && 
+                   (resource.data.recipients.hasAny([request.auth.uid]) ||
+                    resource.data.sender == request.auth.uid);
+    }
+
+    // Chat system rules
+    match /chats/{chatId} {
+      function participants() {
+        return chatId.split('_');
+      }
+      function isParticipant() {
+        return request.auth != null && 
+               request.auth.uid in participants();
+      }
+
+      allow create: if request.auth != null;
+      allow read: if isParticipant();
+
+      match /messages/{messageId} {
+        allow create: if isParticipant() || 
+                      (request.auth != null && 
+                       request.resource.data.sender == 'system');
+        allow read: if isParticipant();
+      }
+    }
+  }
+}
