@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/earthquake-guide-web/static/css/main.a813cb40.css",
+    "main.js": "/earthquake-guide-web/static/js/main.e8f125d2.js",
+    "static/js/453.f57e4629.chunk.js": "/earthquake-guide-web/static/js/453.f57e4629.chunk.js",
+    "index.html": "/earthquake-guide-web/index.html",
+    "main.a813cb40.css.map": "/earthquake-guide-web/static/css/main.a813cb40.css.map",
+    "main.e8f125d2.js.map": "/earthquake-guide-web/static/js/main.e8f125d2.js.map",
+    "453.f57e4629.chunk.js.map": "/earthquake-guide-web/static/js/453.f57e4629.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a813cb40.css",
+    "static/js/main.e8f125d2.js"
+  ]
+}
